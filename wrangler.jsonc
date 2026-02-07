@@ -1,7 +1,7 @@
 {
   "name": "test-pages",
   "compatibility_date": "2026-02-07",
-  "main": "src/index.ts",
+  "main": "index.html",
   "assets": {
     "directory": "./dist",
   },
