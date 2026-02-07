@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { hello } from "@/apis/hello";
+import { hello, type IpData } from "@/apis/hello";
 
-const res = ref("");
+const res = ref<IpData>();
 onMounted(async () => {
   res.value = await hello();
   console.log(res.value);
@@ -18,7 +18,7 @@ onMounted(async () => {
       用于测试 Vue 3 项目使用 GitHub Actions 在 GitHub Pages 上的自动部署
     </div>
     <div>
-      <p>{{ res }}</p>
+      <p>{{ res?.ip }}</p>
     </div>
   </div>
 </template>
