@@ -34,6 +34,7 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 10 # 指定 pnpm 版本，或使用最新版
+          run_install: false # 明确不运行安装，我们稍后自己运行
 
       - name: Install dependencies 安装依赖
         run: pnpm install
