@@ -1,7 +1,7 @@
 {
   "name": "test-pages",
   "compatibility_date": "2026-02-07",
-  "main": "./dist/index.html",
+  "main": "/opt/buildhome/repo/dist/index.html",
   "assets": {
     "directory": "./dist",
   },
