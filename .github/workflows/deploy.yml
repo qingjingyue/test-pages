@@ -27,14 +27,13 @@ jobs:
       - name: Setup Node.js 环境
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # 使用 Node.js 20 或更高版本
+          node-version: "22" # 使用 Node.js 22 或更高版本
           cache: "pnpm" # 启用 pnpm 缓存
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 10 # 指定 pnpm 版本，或使用最新版
-          run_install: false # 明确不运行安装，我们稍后自己运行
 
       - name: Install dependencies 安装依赖
         run: pnpm install
