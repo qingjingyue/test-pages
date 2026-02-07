@@ -1,8 +1,12 @@
 {
+  // worker 名称
   "name": "test-pages",
+  // 兼容性日期
   "compatibility_date": "2026-02-07",
-  "main": "src/main.ts",
-  "assets": {
-    "directory": "./dist",
+  // 静态资源绑定
+  "site": {
+    "bucket": "./dist",
+    "include": ["**/*"],
+    "exclude": [],
   },
 }
