@@ -28,12 +28,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22" # 使用 Node.js 22 或更高版本
-          cache: "pnpm" # 启用 pnpm 缓存
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - name: Install pnpm 安装 pnpm
+        uses: pnpm/action-setup@v3
         with:
-          version: 10 # 指定 pnpm 版本，或使用最新版
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory  获取 pnpm 缓存目录
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache  设置 pnpm 缓存
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies 安装依赖
         run: pnpm install
