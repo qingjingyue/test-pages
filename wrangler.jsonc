@@ -4,7 +4,7 @@
   // 兼容性日期
   "compatibility_date": "2026-02-07",
   // 入口文件
-  "main": "worker/index.ts",
+  "main": "worker/index.js",
   // 静态资源绑定
   "site": {
     "bucket": "./dist", // Vite 构建输出目录
