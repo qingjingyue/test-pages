@@ -1,0 +1,43 @@
+name: Deploy to AliECS
+
+on:
+  push:
+    branches: [main] # 当推送到 main 分支时触发，可根据需要修改为 master
+  workflow_dispatch: # 允许手动触发
+
+# 设置权限
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: SSH 连接到远程服务器并部署
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # 进入项目目录
+            cd /root/test/test-pages-deploy/backend
+
+            # 拉取最新代码
+            git pull origin main
+
+            # 使用 docker-compose 停止并移除旧服务
+            docker-compose down
+
+            # 使用 docker-compose 构建并启动新服务
+            docker-compose up -d --build
+
+            # 清理未使用的镜像
+            docker image prune -f
+
+            echo "部署完成！"
