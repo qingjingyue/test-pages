@@ -1,45 +1,177 @@
+# 工作流名称：部署到阿里云ECS服务器
 name: Deploy to AliECS
 
+# 触发条件
 on:
+  # 当推送到 main 分支时触发
   push:
-    branches: [main] # 当推送到 main 分支时触发
+    branches: [main]
+    # 只在 backend 目录下的文件变更时触发
     paths:
-      - "backend/**" # 只在 backend 目录下的文件变更时触发
-  workflow_dispatch: # 允许手动触发
+      - "backend/**"
+  # 允许手动触发
+  workflow_dispatch:
 
 # 设置权限
 permissions:
+  # 只需要读取代码库的权限
   contents: read
 
+# 定义工作流任务
 jobs:
-  deploy:
+  # 构建任务：在GitHub Actions服务器上构建Docker镜像
+  build:
+    # 运行环境：最新版Ubuntu
     runs-on: ubuntu-latest
-
+    # 输出：生成的镜像标签，供部署任务使用
+    outputs:
+      image_tag: ${{ steps.generate-tag.outputs.image_tag }}
+    # 构建步骤
     steps:
-      - name: Checkout
+      # 步骤1：检出代码库
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: SSH 连接到远程服务器并部署
+      # 步骤2：设置Docker Buildx（用于构建Docker镜像）
+      - name: 设置Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 步骤3：生成唯一的镜像标签（基于时间戳和Git提交哈希）
+      - name: 生成镜像标签
+        id: generate-tag
+        run: echo "image_tag=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
+      # 步骤4：恢复Docker构建缓存
+      - name: 恢复Docker构建缓存
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # 步骤5：构建Docker镜像并保存为tar文件
+      - name: 构建Docker镜像
+        working-directory: ./backend
+        run: |
+          # 构建镜像，使用生成的标签和缓存
+          docker buildx build \
+            --cache-from type=local,src=/tmp/.buildx-cache \
+            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t test-deploy-backend:${{ steps.generate-tag.outputs.image_tag }} \
+            .
+          # 将镜像保存为tar文件，以便后续上传
+          docker save -o test-deploy-backend-${{ steps.generate-tag.outputs.image_tag }}.tar test-deploy-backend:${{ steps.generate-tag.outputs.image_tag }}
+
+      # 步骤6：移动新缓存到缓存目录
+      - name: 移动新缓存到缓存目录
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      # 步骤7：上传Docker镜像作为构建产物
+      - name: 上传Docker镜像产物
+        uses: actions/upload-artifact@v4
+        with:
+          # 产物名称
+          name: app-backend-image
+          # 产物路径
+          path: ./backend/test-deploy-backend-${{ steps.generate-tag.outputs.image_tag }}.tar
+          # 保留天数：1天
+          retention-days: 1
+
+  # 部署任务：将构建好的镜像部署到远程服务器
+  deploy:
+    # 依赖关系：必须在构建任务完成后才能执行
+    needs: build
+    # 运行环境：最新版Ubuntu
+    runs-on: ubuntu-latest
+    # 部署步骤
+    steps:
+      # 步骤1：下载构建产物（Docker镜像）
+      - name: 下载Docker镜像产物
+        uses: actions/download-artifact@v4
+        with:
+          # 产物名称，与上传时保持一致
+          name: app-backend-image
+          # 下载到当前目录
+          path: .
+
+      # 步骤2：准备远程服务器（确保目录存在并清理旧文件）
+      - name: 准备远程服务器
         uses: appleboy/ssh-action@v1.0.3
         with:
+          # 服务器地址（从GitHub Secrets中获取）
           host: ${{ secrets.SERVER_HOST }}
+          # 服务器端口（从GitHub Secrets中获取）
           port: ${{ secrets.SERVER_PORT }}
+          # 用户名（从GitHub Secrets中获取）
           username: ${{ secrets.SERVER_USER }}
+          # SSH密钥（从GitHub Secrets中获取）
           key: ${{ secrets.SERVER_SSH_KEY }}
+          # 执行脚本
+          script: |
+            # 确保部署目录存在
+            mkdir -p /root/test/test-pages-deploy/
+            # 清理旧的镜像文件
+            rm -f /root/test/test-pages-deploy/test-deploy-backend-*.tar
+
+      # 步骤3：将Docker镜像复制到远程服务器
+      - name: 复制Docker镜像到远程服务器
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          # 服务器地址（从GitHub Secrets中获取）
+          host: ${{ secrets.SERVER_HOST }}
+          # 服务器端口（从GitHub Secrets中获取）
+          port: ${{ secrets.SERVER_PORT }}
+          # 用户名（从GitHub Secrets中获取）
+          username: ${{ secrets.SERVER_USER }}
+          # SSH密钥（从GitHub Secrets中获取）
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          # 源文件路径
+          source: test-deploy-backend-${{ needs.build.outputs.image_tag }}.tar
+          # 目标文件路径
+          target: /root/test/test-pages-deploy/
+
+      # 步骤4：在远程服务器上启动容器
+      - name: 在远程服务器上启动容器
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          # 服务器地址（从GitHub Secrets中获取）
+          host: ${{ secrets.SERVER_HOST }}
+          # 服务器端口（从GitHub Secrets中获取）
+          port: ${{ secrets.SERVER_PORT }}
+          # 用户名（从GitHub Secrets中获取）
+          username: ${{ secrets.SERVER_USER }}
+          # SSH密钥（从GitHub Secrets中获取）
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          # 执行脚本
           script: |
             # 进入项目目录
-            cd /root/test/test-pages-deploy/backend
-
-            # 拉取最新代码
-            git pull origin main
-
-            # 使用 docker-compose 停止并移除旧服务
-            docker-compose down
-
-            # 使用 docker-compose 构建并启动新服务
-            docker-compose up -d --build
-
-            # 清理未使用的镜像
-            docker image prune -f
-
+            cd /root/test/test-pages-deploy
+            # 创建网络（如果不存在）
+            docker network create app-network || true
+            # 启动Redis容器（如果不存在）
+            if [ "$(docker ps -q -f name=test-deploy-redis)" = "" ]; then
+              docker run -d \
+                --name test-deploy-redis \
+                --network app-network \
+                -p 6379:6379 \
+                redis:7-alpine
+            fi
+            # 加载Docker镜像
+            docker load -i test-deploy-backend-${{ needs.build.outputs.image_tag }}.tar
+            # 停止并移除旧容器（如果存在）
+            docker stop test-deploy-app || true
+            docker rm test-deploy-app || true
+            # 启动新容器
+            docker run -d \
+              --name test-deploy-app \
+              --network app-network \
+              -p 8080:8080 \
+              test-deploy-backend:${{ needs.build.outputs.image_tag }}
+            # 清理旧版本的 test-deploy-backend 镜像（保留最新版本）
+            docker images -q test-deploy-backend | tail -n +2 | xargs -r docker rmi -f
+            # 输出部署完成信息
             echo "部署完成！"

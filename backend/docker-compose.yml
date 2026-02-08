@@ -7,8 +7,23 @@ services:
     container_name: test-deploy-app
     ports:
       - "8080:8080"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:8
+    container_name: test-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
     networks:
       - app-network
 
 networks:
   app-network:
+
+volumes:
+  redis-data:

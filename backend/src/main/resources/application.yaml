@@ -4,3 +4,9 @@ server:
 spring:
   application:
     name: test-pages-deploy
+  data:
+    redis:
+      host: test-redis
+      port: 6379
+      password:
+      database: 0
