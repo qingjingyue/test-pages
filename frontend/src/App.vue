@@ -27,13 +27,13 @@ function updateCount() {
 
 <template>
   <div class="container">
-    <h1>🎉 欢迎来到测试部署系统</h1>
+    <h1>🎉 欢迎来到nginx测试部署系统</h1>
     <p>这是一个基于 Spring Boot 的简单应用。</p>
 
     <div class="count-container">
       <h2>访问次数统计</h2>
       <div class="count-value">
-        <span v-if="loading">加载中......</span>
+        <span v-if="loading">加载中...</span>
         <span v-else-if="error">{{ error }}</span>
         <span v-else>{{ count }}</span>
       </div>

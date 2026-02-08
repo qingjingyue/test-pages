@@ -5,12 +5,12 @@ name: test-pages-deploy
 services:
 
   nginx:
-    image: nginx:1.26
+    image: nginx:latest
     container_name: test-nginx
     ports:
       - "80:80"
     volumes:
-      - /root/test/test-pages-deploy/frontend/nginx:/etc/nginx
+      - /root/test/test-pages-deploy/frontend/conf:/etc/nginx/conf.d
       - /root/test/test-pages-deploy/frontend/html:/usr/share/nginx/html
       - /root/test/test-pages-deploy/frontend/logs:/var/log/nginx
     environment:

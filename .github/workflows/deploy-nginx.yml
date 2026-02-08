@@ -2,7 +2,7 @@ name: Deploy Nginx to AliECS
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
     paths:
       - "frontend/**"
   workflow_dispatch:
@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p deploy-package
           cp -r dist deploy-package/
-          cp nginx.conf deploy-package/
+          cp default.conf deploy-package/
           cd deploy-package
           tar -czf nginx-deploy.tar.gz *
 
@@ -115,8 +115,8 @@ jobs:
             # 覆盖html目录
             rm -rf ./html/dist/*
             mv ./dist ./html/
-            # 替换nginx.conf
-            mv ./nginx.conf ./nginx/nginx.conf
+            # 替换default.conf
+            mv ./default.conf ./conf/default.conf
             # 重启nginx
             docker restart test-nginx || true
             echo "Nginx 部署完成！"
