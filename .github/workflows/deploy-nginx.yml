@@ -114,9 +114,9 @@ jobs:
             tar -xzf nginx-deploy.tar.gz
             # 覆盖html目录
             rm -rf ./html/*
-            cp -r dist/* ./html/
+            mv ./dist ./html/
             # 替换nginx.conf
-            cp nginx.conf ./nginx.conf
+            mv ./nginx.conf ./nginx/nginx.conf
             # 重启nginx
             docker restart test-nginx || true
             echo "Nginx 部署完成！"
