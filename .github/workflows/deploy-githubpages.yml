@@ -59,7 +59,7 @@ jobs:
       - name: Build project 构建项目
         run: pnpm run build
         env:
-          NODE_ENV: production
+          NODE_ENV: github-pages
 
       - name: Setup Pages 配置 Pages
         uses: actions/configure-pages@v3

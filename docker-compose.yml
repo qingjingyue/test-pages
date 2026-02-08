@@ -1,3 +1,5 @@
+version: '3'
+
 name: test-pages-deploy
 
 services:
@@ -8,7 +10,8 @@ services:
     ports:
       - "80:80"
     volumes:
-      - /root/test/test-pages-deploy/frontend/nginx:/etc/nginx
+      - /root/test/test-pages-deploy/frontend/nginx.conf:/etc/nginx/nginx.conf
+      - /root/test/test-pages-deploy/frontend/conf:/etc/nginx/conf.d
       - /root/test/test-pages-deploy/frontend/html:/usr/share/nginx/html
     environment:
       - TZ=Asia/Shanghai
