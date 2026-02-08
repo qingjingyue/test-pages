@@ -19,18 +19,4 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-  server: {
-    proxy: {
-      '/hello': {
-        target: 'http://8.130.108.146:8080',
-        changeOrigin: true,
-        secure: false
-      },
-      '/count': {
-        target: 'http://8.130.108.146:8080',
-        changeOrigin: true,
-        secure: false
-      }
-    }
-  }
 })
