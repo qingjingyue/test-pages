@@ -10,7 +10,9 @@ const basePath = () => {
         case 'github-pages':
             return '/test-pages-deploy/' 
         case 'nginx':
-            return '/' 
+            return './' 
+        case 'production': // 生产(本地)环境，使用相对路径
+            return './' // 使用相对路径，支持直接打开文件
         default:
             return '/' 
     }
