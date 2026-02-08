@@ -23,6 +23,10 @@ jobs:
   build:
     # 运行环境：最新版Ubuntu
     runs-on: ubuntu-latest
+    # 环境变量设置
+    env:
+      # 设置时区为亚洲/上海
+      TZ: Asia/Shanghai
     # 输出：生成的镜像标签，供部署任务使用
     outputs:
       image_tag: ${{ steps.generate-tag.outputs.image_tag }}
@@ -155,25 +159,15 @@ jobs:
           script: |
             # 进入项目目录
             cd /root/test/test-pages-deploy
-            # 创建网络（如果不存在）
-            docker network create app-network || true
-            # 启动Redis容器（如果不存在）
-            if [ "$(docker ps -q -f name=test-deploy-redis)" = "" ]; then
-              docker run -d \
-                --name test-deploy-redis \
-                --network app-network \
-                -p 6379:6379 \
-                redis:7-alpine
-            fi
-            # 加载Docker镜像
-            docker load -i test-deploy-backend-${{ needs.build.outputs.image_tag }}.tar
             # 停止并移除旧容器（如果存在）
             docker stop test-deploy-app || true
             docker rm test-deploy-app || true
+            # 加载Docker镜像
+            docker load -i test-deploy-backend-${{ needs.build.outputs.image_tag }}.tar
             # 启动新容器
             docker run -d \
               --name test-deploy-app \
-              --network app-network \
+              --network test-pages-deploy_app-network \
               -p 8080:8080 \
               test-deploy-backend:${{ needs.build.outputs.image_tag }}
             # 清理旧版本的 test-deploy-backend 镜像（保留最新版本）

@@ -1,16 +1,8 @@
 version: '3'
 
+name: test-pages-deploy
+
 services:
-  backend:
-    build: .
-    image: test-deploy-backend
-    container_name: test-deploy-app
-    ports:
-      - "8080:8080"
-    depends_on:
-      - redis
-    networks:
-      - app-network
 
   redis:
     image: redis:8
@@ -22,8 +14,8 @@ services:
     networks:
       - app-network
 
-networks:
-  app-network:
-
 volumes:
   redis-data:
+
+networks:
+  app-network:
