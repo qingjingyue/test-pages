@@ -12,6 +12,7 @@ services:
     volumes:
       - /root/test/test-pages-deploy/frontend/nginx:/etc/nginx
       - /root/test/test-pages-deploy/frontend/html:/usr/share/nginx/html
+      - /root/test/test-pages-deploy/frontend/logs:/var/log/nginx
     environment:
       - TZ=Asia/Shanghai
     networks:

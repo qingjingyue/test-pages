@@ -113,7 +113,7 @@ jobs:
             # 解压部署包
             tar -xzf nginx-deploy.tar.gz
             # 覆盖html目录
-            rm -rf ./html/*
+            rm -rf ./html/dist/*
             mv ./dist ./html/
             # 替换nginx.conf
             mv ./nginx.conf ./nginx/nginx.conf

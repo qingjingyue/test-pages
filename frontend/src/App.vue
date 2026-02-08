@@ -11,7 +11,7 @@ onMounted(() => {
 
 function updateCount() {
   loading.value = true;
-  fetch("/count")
+  fetch("/api/count")
       .then((response) => response.json())
       .then((data) => {
         count.value = data;
